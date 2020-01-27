@@ -1,9 +1,13 @@
 'use strict';
 
+
 module.exports = class ccxt_quicker {
     constructor(__exchange_id, __params = { 'verbose': false }) {
         this.ccxt = require('ccxt');
+        this.time_tools = require('./time_tools.js');
+        this.tt = new this.time_tools();
         this.__exchange = new this.ccxt[__exchange_id](__params);
+        this.__exchange.markets_is_loaded = { markets_loaded: false };
         (async() => {
             this.__marketslist = await this.getMarketsList();
             this.__marketscount = await this.__marketslist.length;
@@ -40,6 +44,35 @@ module.exports = class ccxt_quicker {
         return Object.keys(this.__exchange.timeframes);
     }
 
+    __isMarketsLoaded() {
+        return this.__exchange.markets_is_loaded;
+    }
+
+    __marketsIsLoaded() {
+        this.__exchange.markets_is_loaded = { markets_loaded: true, timestamp: this.tt.date_time_epoch_ms() };
+    }
+
+    async marketIsActive(__market) {
+        let marketIsActive = false;
+        (async() => {
+            if (this.__isMarketsLoaded().markets_loaded === false) {
+                await this.loadMarkets();
+                console.log(this.__exchange);
+            }
+            if (this.__exchange.markets[__market] !== undefined) {
+                return this.__exchange.markets[__market].active;
+            }
+            return false;
+        })();
+    }
+
+    async marketIsOnline(__market) {
+        return new Promise((resolve, reject) => {
+            (async() => {
+            })();
+        });
+    }
+
     async getMarketsList() {
         return new Promise((resolve, reject) => {
             (async() => {
@@ -49,6 +82,7 @@ module.exports = class ccxt_quicker {
                     for (let symbol in markets_list) {
                         list.push(symbol);
                     }
+                    this.__exchange.markets_list = list;
                     resolve(list);
                 } catch (err) {
                     reject(err);
@@ -61,6 +95,9 @@ module.exports = class ccxt_quicker {
         return new Promise((resolve, reject) => {
             try {
                 let markets = this.__exchange.loadMarkets();
+                //this.__exchange.markets_is_loaded = { markets_loaded: true, timestamp: this.tt.date_time_epoch_ms() };
+                this.__marketsIsLoaded();
+                this.__exchange.markets = markets;
                 resolve(markets);
             } catch (err) {
                 reject(err);
