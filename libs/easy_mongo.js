@@ -1,12 +1,12 @@
 'use strict';
 
 module.exports = class easy_mongo {
-    constructor(uri, options /*, verbose = false */ ) {
+    constructor(uri, options = { verbose: true } /*, verbose = false */ ) {
         this.uri = uri;
         this.MongoClient = require('mongodb').MongoClient;
         this.__objectid = require('mongodb').ObjectId;
         this.__connector = null;
-        this.__verbose = false;
+        this.__verbose = options.verbose;
     }
 
     set_verbose(verbose) {
@@ -48,7 +48,7 @@ module.exports = class easy_mongo {
 
     async connect() {
             return new Promise((resolve, reject) => {
-                this.MongoClient.connect(this.uri).then((result) => {
+                this.MongoClient.connect(this.uri, { useUnifiedTopology: true }).then((result) => {
                     if (this.__verbose) {
                         console.log('database connection ok.');
                     }
