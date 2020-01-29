@@ -1,19 +1,42 @@
 'use strict';
 
-module.exports = class easy_mongo {
-    constructor(uri, database = 'crypto', options = { verbose: true } /*, verbose = false */ ) {
+module.exports = class db_mongo {
+    constructor(uri, options = { verbose: true }) {
         this.uri = uri;
         this.MongoClient = require('mongodb').MongoClient;
         this.__objectid = require('mongodb').ObjectId;
-        this.__connector = null;
-        this.__verbose = options.verbose;
-        this.__database = database;
-        this.client = new this.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+        this.__client = null;
+        if (options.verbose === undefined) {
+            this.__verbose = false
+        } else {
+            this.__verbose = options.verbose;
+        }
     }
 
     set_verbose(verbose) {
         this.__verbose = verbose;
     }
+
+    async connect() {
+        this.MongoClient.connect(this.uri, { useUnifiedTopology: true }).then((result) => {
+             if (this.__verbose) {
+                  console.log('database connection ok.');
+             }
+             this.__connector = result;
+             resolve(true);
+          }).catch((err) => {
+              if (this.__verbose) {
+                   console.error('database connection fail.');
+                   console.error(err);
+              }
+              this.__connector = err;
+              reject(false);
+           });
+    }
+
+
+    /****************************************************************************/
+
 
     async drop_collection(__collection) {
         return new Promise((resolve, reject) => {
@@ -49,42 +72,23 @@ module.exports = class easy_mongo {
     }
 
     async connect() {
-        return new Promise((resolve, reject) => {
-        try {
-            await this.client.connect();
-            this.__connector = this.client.db(this.__database);
-            if (this.__verbose) {
-                 console.log('database connection ok.');
-            }
-            resolve(true);
-        } catch(err) {
-            if(this.__verbose) {
-                console.log("Fail to connect into database !!!");
-                console.log(err.stack);
-            }
-            this.__connector = null;
-            reject(false);
-        }
-        });
-        /*
-        return new Promise((resolve, reject) => {
-            this.MongoClient.connect(this.uri, { useUnifiedTopology: true }).then((result) => {
-                if (this.__verbose) {
-                    console.log('database connection ok.');
-                }
-                this.__connector = result;
-                resolve(true);
-             }).catch((err) => {
-                if (this.__verbose) {
-                    console.error('database connection fail.');
-                    console.error(err);
-                }
-                this.__connector = err;
-                reject(false);
+            return new Promise((resolve, reject) => {
+                this.MongoClient.connect(this.uri, { useUnifiedTopology: true }).then((result) => {
+                    if (this.__verbose) {
+                        console.log('database connection ok.');
+                    }
+                    this.__connector = result;
+                    resolve(true);
+                }).catch((err) => {
+                    if (this.__verbose) {
+                        console.error('database connection fail.');
+                        console.error(err);
+                    }
+                    this.__connector = err;
+                    reject(false);
+                });
             });
-        });
-        */
-    }
+        }
         // mark for review
     async delete_doc(__collection, __doc_selector) {
             if (this.__verbose) {
