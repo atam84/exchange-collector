@@ -32,11 +32,11 @@ module.exports = class time_tools {
     timing_report() {
         var start_to_end = this.__end.epoch - this.__start.epoch;
         console.log('-------------------------');
-        console.log('check points:' + this.__counter);
-        console.log('from staring to the end of timming: ' + start_to_end + 'ms (' + start_to_end / 1000 + 's) - (' + (start_to_end / 1000) / 60 + ')');
+        console.log('check points: ' + this.__counter);
+        console.log('from staring to the end of timming: ' + (start_to_end).toFixed(4) + 'ms (' + (start_to_end / 1000).toFixed(4) + 's) - (' + ((start_to_end / 1000) / 60).toFixed(4) + ')');
         for (var i = 0; i < this.__counter; i++) {
             var start_to_checkpoint = this.__checkpoint[i].epoch - this.__start.epoch;
-            console.log('seq: ' + this.__checkpoint[i].checkpoint + ' label: ' + this.__checkpoint[i].label + ' - timing from start: ' + start_to_checkpoint + 'ms (' + start_to_checkpoint / 1000 + 's)');
+            console.log('seq: ' + this.__checkpoint[i].checkpoint + ' label: ' + this.__checkpoint[i].label + ' - timing from start: ' + (start_to_checkpoint).toFixed(4) + 'ms (' + (start_to_checkpoint / 1000).toFixed(4) + 's)');
         }
     }
 
