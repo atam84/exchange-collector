@@ -15,15 +15,15 @@ icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
     rateLimit       = platform.getRateLimit();
 
     if (platform.__isMarketsLoaded().markets_loaded === false) {
-        console.err('[' + time_t.date_time_epoch_ms() + ']  Fail to load markets.');
+        console.log('[' + time_t.date_time_epoch_ms() + ']  Fail to load markets.');
         return false;
     }
 
     await easy_db.connect().then((result) => {
         console.log('[' + time_t.date_time_epoch_ms() + '] YAHHH Connected to database ' + database);
     }).catch((err) => {
-        console.err('[' + time_t.date_time_epoch_ms() + '] Database connection error !!!');
-        console.err(err);
+        console.log('[' + time_t.date_time_epoch_ms() + '] Database connection error !!!');
+        console.log(err);
     });
 
     await easy_db.create_collection(crypto_platform);
@@ -86,13 +86,13 @@ icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
     for (var i=0; i<data.length; i++) {
         //console.log(data[i]);
         console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Insert document into collection ' + crypto_platform);
-        await easy_db.insert_doc(crypto_platform, data[i]);
+        //await easy_db.insert_doc(crypto_platform, data[i]);
         
-        easy_db.updateOne(crypto_platform, { _id: data[i]._id }, data[i]).then((result) => {
-            console.err('Document inserted !!!');
+        await easy_db.updateOne(crypto_platform, { _id: data[i]._id }, data[i]).then((result) => {
+            console.log('Document inserted !!!');
             console.log(result);
         }).catch((err) => {
-            console.err('Error !!!');
+            console.log('Error !!!');
             console.log(err);
         });
         
