@@ -3,14 +3,16 @@
 module.exports = class easy_mongo {
     constructor(uri, database = 'crypto', options = { verbose: true } /*, verbose = false */ ) {
         this.uri = uri;
+        this.__connector = null;
+        this.__verbose = options.verbose;
+        this.__database = database;
+        this.db_uri = this.uri + this.__database;
+        
         this.MongoClient = require('mongodb').MongoClient;
         this.__objectid = require('mongodb').ObjectId;
         this.time_tools   = require('./time_tools.js');
         this.time_t = new this.time_tools();
-        this.__connector = null;
-        this.__verbose = options.verbose;
-        this.__database = database;
-        this.client = new this.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+        this.client = new this.MongoClient(this.db_uri, { useNewUrlParser: true, useUnifiedTopology: true });
     }
 
     set_verbose(verbose) {
