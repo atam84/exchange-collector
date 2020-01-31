@@ -149,11 +149,13 @@ module.exports = class ccxt_quicker {
         });
     }
 
-    getMarket(__market) {
-        if (this.__exchange.markets[__market] === undefined) {
-            return undefined;
-        }
-        return this.__exchange.markets[__market];
+    async getMarket(__market) {
+        return new Promise((resolve, reject) => {
+            if (this.__exchange.markets[__market] === undefined) {
+                reject(undefined);
+            }
+            resolve(this.__exchange.markets[__market]);
+        });
     }
 
     async getMarketsList() {

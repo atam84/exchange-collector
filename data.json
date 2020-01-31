@@ -1,13 +1,3 @@
-MongoDB shell version: 3.2.11
-connecting to: test
-Server has startup warnings: 
-2020-01-23T21:03:57.871-0500 I CONTROL  [initandlisten] 
-2020-01-23T21:03:57.871-0500 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/enabled is 'always'.
-2020-01-23T21:03:57.871-0500 I CONTROL  [initandlisten] **        We suggest setting it to 'never'
-2020-01-23T21:03:57.871-0500 I CONTROL  [initandlisten] 
-> [3G[Jdb.bittrex.find({_id: 'EOS/BTC'}).pretty()[45G[3G[Jit[5G[3G[Jdb.bittrex.find().pretty()[29G[3G[Jdb.bittrex.find()[20G[3G[Jdb.bittrex.find().count()[28G[3G[Jshow collections[19G[3G[Juse crypto[13G[3G[Juse crypto[13G
-switched to db crypto
-> [3G[Juse crypto[13G[3G[Jdb.bittrex.find({_id: 'EOS/BTC'}).pretty()[45G[3G[Jit[5G[3G[Jdb.bittrex.find().pretty()[29G[3G[Jdb.bittrex.find()[20G[3G[Jdb.bittrex.find().count()[28G[3G[Jshow collections[19G[3G[Jdb.bittrex.find().count()[28G[3G[Jdb.bittrex.find()[20G[3G[Jdb.bittrex.find().pretty()[29G[3G[Jit[5G[3G[Jdb.bittrex.find({_id: 'EOS/BTC'}).pretty()[45G[3G[Jdb.bittrex.find({_id: 'EOS/BTC'}).pretty()[45G
 {
 	"_id" : "EOS/BTC",
 	"market" : "EOS/BTC",
@@ -84141,5 +84131,4 @@ switched to db crypto
 		]
 	]
 }
-> 
-bye
+

@@ -6,14 +6,14 @@ database = 'crypto';
 icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
 
 (async() => {
-    crypto_platform = 'bittrex';
+    crypto_platform       = 'bittrex';
     crypto_platform_ohlcv = crypto_platform + '_ohlcv';
-    time_t          = new time_tools();
-    platform        = new ccxt_quicker(crypto_platform);
-    easy_db         = new easy_mongo('mongodb://localhost:27017/' + database);
+    time_t                = new time_tools();
+    platform              = new ccxt_quicker(crypto_platform);
+    easy_db               = new easy_mongo('mongodb://localhost:27017/' + database);
+    markets               = await platform.loadMarkets();
+    rateLimit             = platform.getRateLimit();
     time_t.start_timing();
-    markets         = await platform.loadMarkets();
-    rateLimit       = platform.getRateLimit();
 
     if (platform.__isMarketsLoaded().markets_loaded === false) {
         console.log('[' + time_t.date_time_epoch_ms() + ']  Fail to load markets.');
@@ -39,8 +39,10 @@ icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
     let ohlcv       = [];
     let __collected = {};
     let __OHLCV     = {};
+    let repeater    = 0;
+    let success     = false;
     for (var i=0; i<icoList.length; i++) {
-        let __market = icoList[i];
+        let __market          = icoList[i];
         let __ohlcv_last_time = '';
         __collected = {
            '_id': '',
@@ -63,10 +65,26 @@ icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
         __collected.OHLCV  = __market + '_OHLCV';
         __OHLCV._id        = __collected.OHLCV;
         __OHLCV.market     = __market;
-
+        
         console.log('[' + time_t.date_time_epoch_ms() + ']  *** Working on ' + __market);
         console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting markets info');
-        __collected.info = await platform.getMarket(__market);
+        repeater = 0;
+        do {
+            console.log('--- ' + repeater + ' is success: ' + success);
+            await platform.getMarket(__market).then((result) => {
+                console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting markets info    OK.');
+                __collected.info = result;
+                repeater = 3;
+            }).catch((err) => {
+                console.log('[' + time_t.date_time_epoch_ms() + ']      ==== [ ERR ] Getting markets info (retry).');
+                console.log(err);
+            });
+
+            repeater += 1;
+            await time_t.__u_sleep(rateLimit);
+        } while(repeater < 3);
+        
+        console.log(__collected.info);
 
         await time_t.__u_sleep(rateLimit);
         console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting price');
