@@ -11,6 +11,22 @@ function Log(Message, printLog = true) {
     }
 }
 
+async function getLastTimeOHLCV(__collection, __id) {
+    return new Promise((resolve, reject) => {
+        (async() => {
+            last_time = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
+            if (last_time === null) {
+                resolve(undefined);
+            } else { 
+                if (last_time.last_time !== undefined) {
+                    resolve(last_time.last_time);
+                }
+            }
+            resolve(undefined);
+        })();
+    });
+}
+
 function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMessage': '', 'success': 'Success', 'failure': 'Fail'}, retry = 3, rateLimit = 1500) {
     let repeater = 0;
     let info = '';
@@ -130,6 +146,7 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             //await time_t.__u_sleep(rateLimit);
             //console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting price');
             //__collected.price = await platform.icoPrice(__market);
+
             __collected.price = await marketInfo('icoPrice', __market, {
                'logMessage': true,
                'mainMessage': '[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' price                  ',

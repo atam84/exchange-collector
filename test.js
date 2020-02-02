@@ -26,11 +26,27 @@ async function push_data() {
     });
 }
 
+async function getLastTimeOHLCV(__collection, __id) {
+    return new Promise((resolve, reject) => {
+        (async() => {
+            last_time = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
+            if (last_time === null) {
+                resolve(undefined);
+            } else { 
+                if (last_time.last_time !== undefined) {
+                    resolve(last_time.last_time);
+                }
+            }
+            resolve(undefined);
+        })();
+    });
+}
+
 (async() => {
     crypto_platform = 'bittrex';
     time_t          = new time_tools();
 
-    easy_db         = new easy_mongo('mongodb://localhost:27017/', database);
+    easy_db         = new easy_mongo('mongodb://localhost:27017/', database, { verbose: false });
     time_t.start_timing();
 
 
@@ -41,11 +57,16 @@ async function push_data() {
         console.err(err);
     });
 
-    await easy_db.drop_collection(crypto_platform);
-    await easy_db.create_collection(crypto_platform);
+    //async findOne(__collection, __filter, __projection = {})
+    for(var i=0; i<icoList.length; i++) {
+        last_time = await getLastTimeOHLCV(crypto_platform + '_ohlcv', icoList[i] + '_OHLCV');
+        console.log(icoList[i] + ' - ' +last_time);
+    }
+    //await easy_db.drop_collection(crypto_platform);
+    //await easy_db.create_collection(crypto_platform);
     
     
-    await push_data();
+    //await push_data();
     
     
     await easy_db.disconnect();
