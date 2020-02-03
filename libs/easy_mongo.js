@@ -153,6 +153,21 @@ module.exports = class easy_mongo {
             });
         });
     }
+
+    async pushIntoArray(__collection, __filter, __update) {
+        return new Promise((resolve, reject) => {
+            this.__connector.collection(__collection).updateOne(__filter, { $addToSet: __update }, { upsert: true, bypassDocumentValidation: true }).then((result) => {
+                if (this.__verbose) {
+                    console.log('[' + this.time_t.date_time_epoch_ms() + '] push data into array document ok ' + result);
+                }
+                resolve(result);
+            }).catch((err) => {
+                console.error('[' + this.time_t.date_time_epoch_ms() + '] !!! Err: push data into array document fail.');
+                console.error(err);
+                reject(err);
+            });
+        });
+    }
     // ok not tested
     async findOne(__collection, __filter, __projection = {}) {
         return new Promise((resolve, reject) => {

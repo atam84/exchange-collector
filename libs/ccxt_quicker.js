@@ -214,11 +214,11 @@ module.exports = class ccxt_quicker {
     }
 
     // OHLCV Candlestick Charts
-    async icoOHLCV(__symbol, __timeframe = undefined) {
+    async icoOHLCV(__symbol, __period = '1m', __timeframe = undefined) {
         return new Promise((resolve, reject) => {
             if (this.__exchange.hasFetchOHLCV) {
                 try {
-                    let OHLCV = this.__exchange.fetchOHLCV(__symbol, __timeframe);
+                    let OHLCV = this.__exchange.fetchOHLCV(__symbol, __period, __timeframe);
                     resolve(OHLCV);
                 } catch (err) {
                     reject(err);

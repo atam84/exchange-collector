@@ -3,7 +3,7 @@ easy_mongo   = require('./libs/easy_mongo.js');
 time_tools   = require('./libs/time_tools.js');
 
 database = 'crypto';
-icoList = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
+icoList = [ 'EOS/USDT', 'EOS/BTC']; //, 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
 
 function Log(Message, printLog = true) {
     if(printLog === true) {
@@ -27,7 +27,7 @@ async function getLastTimeOHLCV(__collection, __id) {
     });
 }
 
-function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMessage': '', 'success': 'Success', 'failure': 'Fail'}, retry = 3, rateLimit = 1500) {
+function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMessage': '', 'success': 'Success', 'failure': 'Fail', 'period': '1m'}, retry = 3, rateLimit = 1500) {
     let repeater = 0;
     let info = '';
     return new Promise((resolve, reject) => { 
@@ -37,8 +37,14 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             repeater += 1;
             try {
                 //info = await platform.getMarket(__market);
-                console.log('Fired');
-                info = await platform[__action](__market);
+                //console.log('Fired');
+                //getLastTimeOHLCV(__collection, __id)
+                if(__action === 'icoOHLCV') {
+                    info = await platform[__action](__market, options.period, options.last_time);
+                } else {
+                    info = await platform[__action](__market);
+                }
+                
                 Log(options.success, options.logMessage);
                 await time_t.__u_sleep(rateLimit);
                 repeater = retry + 1;
@@ -51,11 +57,11 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
                 await time_t.__u_sleep(rateLimit * repeater);
                 //continue;
                 if(repeater >= retry) {
-                    reject(undefined);
+                    resolve(undefined);
                 }
             }
       } while(repeater < retry);
-      reject(undefined);
+      resolve(undefined);
       })();
     });
 }
@@ -109,13 +115,16 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
            'info': '',
            'OHLCV': '',
         };
-        __OHLCV = {
-           '_id': '',
-           'last_time': '',
-           'counter': '',
-           'market': '',
-           'OHLCV': '',
-        };
+        candle = {
+            '__OHLCV': {
+                '_id': '',
+                'last_time': '',
+                'counter': '',
+                'market': '',
+            },
+            'OHLCV': ''
+        }
+
         pulling_data = {
             'market_info': false,
             'ico_price': false,
@@ -126,8 +135,8 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
         __collected._id    = __market;
         __collected.market = __market;
         __collected.OHLCV  = __market + '_OHLCV';
-        __OHLCV._id        = __collected.OHLCV;
-        __OHLCV.market     = __market;
+        candle.__OHLCV._id        = __collected.OHLCV;
+        candle.__OHLCV.market     = __market;
         
         console.log('[' + time_t.date_time_epoch_ms() + ']  *** Working on ' + __market);
 
@@ -141,12 +150,10 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             pulling_data.market_info = true;
         }
         
-
         if (pulling_data.market_info) {
             //await time_t.__u_sleep(rateLimit);
             //console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting price');
             //__collected.price = await platform.icoPrice(__market);
-
             __collected.price = await marketInfo('icoPrice', __market, {
                'logMessage': true,
                'mainMessage': '[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' price                  ',
@@ -160,7 +167,6 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             //await time_t.__u_sleep(rateLimit);
             //__collected.trades = await platform.icoTrades(__market);
             //console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting Trades');
-
             __collected.trades = await marketInfo('icoTrades', __market, {
                'logMessage': true,
                'mainMessage': '[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' trades                 ',
@@ -174,7 +180,6 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             //await time_t.__u_sleep(rateLimit);
             //__collected.orderbook = await platform.icoOrderBook(__market);
             //console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting Order book');
-
             __collected.orderbook = await marketInfo('icoOrderBook', __market, {
                'logMessage': true,
                'mainMessage': '[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' order book             ',
@@ -184,35 +189,39 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             if(__collected.orderbook !== undefined) {
                 pulling_data.ico_orderbook = true;
             }
-        
 
             //await time_t.__u_sleep(rateLimit);
             //__OHLCV.OHLCV = await platform.icoOHLCV(__market);
-            __OHLCV.OHLCV = await marketInfo('icoOHLCV', __market, {
+            __last_time = await getLastTimeOHLCV(crypto_platform_ohlcv, __market + '_OHLCV');
+            Log('[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' candles statistics data from ' + __last_time + '\n');
+            candle.OHLCV = await marketInfo('icoOHLCV', __market, {
                'logMessage': true,
                'mainMessage': '[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' candles statistics     ',
                'success': 'Success\n',
-               'failure': 'Fail\n'
+               'failure': 'Fail\n',
+               'last_time': __last_time
             }, 3, rateLimit);
-            if(__OHLCV.OHLCV !== undefined) {
+
+            if(candle.OHLCV !== undefined) {
                 pulling_data.ico_ohlcv = true;
             }
 
             try {
-                __OHLCV.last_time = __OHLCV.OHLCV[__OHLCV.OHLCV.length - 1][0];
+                candle.__OHLCV.last_time = candle.OHLCV[candle.OHLCV.length - 1][0];
             } catch(err) {
-                __OHLCV.last_time = null;
+                candle.__OHLCV.last_time = null;
             }
             try {
-                __OHLCV.counter = __OHLCV.OHLCV.length;
+                candle.__OHLCV.counter = candle.OHLCV.length;
             } catch(err) {
-                __OHLCV.counter = 0;
+                candle.__OHLCV.counter = 0;
             }
             //console.log('[' + time_t.date_time_epoch_ms() + ']      ==== Getting candles statestics');
+            console.log(candle);
         }
         __collected.status = pulling_data;
         data.push(__collected);
-        ohlcv.push(__OHLCV);
+        ohlcv.push(candle);
         __collected = {};
         __OHLCV = {};
     }
@@ -234,11 +243,19 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
     for (var i=0; i<ohlcv.length; i++) {
         console.log('[' + time_t.date_time_epoch_ms() + '] ==== Insert OHLCV documents into collection ' + crypto_platform_ohlcv);
 
-        await easy_db.updateOne(crypto_platform_ohlcv, { _id: ohlcv[i]._id }, ohlcv[i]).then((result) => {
-            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Document OHLCV _id ' + ohlcv[i]._id + ' inserted !!!');
+        await easy_db.updateOne(crypto_platform_ohlcv, { _id: ohlcv[i].__OHLCV._id }, ohlcv[i].__OHLCV).then((result) => {
+            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Document OHLCV _id ' + ohlcv[i].__OHLCV._id + ' inserted !!!');
             //console.log(result);
         }).catch((err) => {
-            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Error inserting document _id ' + ohlcv[i]._id);
+            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Error inserting document _id ' + ohlcv[i].__OHLCV._id);
+            console.log(err);
+        });
+
+        await easy_db.pushIntoArray(crypto_platform_ohlcv, { _id: ohlcv[i].__OHLCV._id }, {'OHLCV': ohlcv[i].OHLCV}).then((result) => {
+            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Array statistics OHLCV _id ' + ohlcv[i].__OHLCV._id + ' inserted !!!');
+            //console.log(result);
+        }).catch((err) => {
+            console.log('[' + time_t.date_time_epoch_ms() + '] ---- Error inserting Array statistics document _id ' + ohlcv[i].__OHLCV._id);
             console.log(err);
         });
     }
