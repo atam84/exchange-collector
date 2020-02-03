@@ -1,0 +1,4 @@
+npm install --save ccxt
+npm install --save mongodb
+npm install --save dotenv
+npm install --save yargs

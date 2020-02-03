@@ -154,6 +154,7 @@ module.exports = class easy_mongo {
         });
     }
 
+    // Push each array element into array selected by field (Uniq value only)
     async pushIntoArray(__collection, __filter, __update) {
         return new Promise((resolve, reject) => {
             this.__connector.collection(__collection).updateOne(__filter, { $addToSet: __update }, { upsert: true, bypassDocumentValidation: true }).then((result) => {
