@@ -81,13 +81,13 @@ module.exports = class ccxt_quicker {
             this.__marketslist  = await this.getMarketsList();
             this.__marketscount = await this.__marketslist.length;
             this.__ratelimit    = await this.__exchange.rateLimit;
-            await time_t.__u_sleep(this.__ratelimit);
+            //await time_t.__u_sleep(this.__ratelimit);
             this.__exchangeid   = await this.__exchange.id;
             this.__exchangename = await this.__exchange.name;
             this.__symbols      = await this.__exchange.symbols;
             this.__currencies   = await this.__exchange.currencies;
             this.__markets      = await this.loadMarkets();
-            await time_t.__u_sleep(this.__ratelimit);
+            //await time_t.__u_sleep(this.__ratelimit);
 /*            this.db_connecting  = await this.easy_db.connect().then((result) => {
                console.log('[' + this.tt.date_time_epoch_ms() + '] Connected to database ' + __exchange_id);
             }).catch((err) => {

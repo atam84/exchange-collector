@@ -136,7 +136,7 @@ if(__argv.help) {
 
 
 (async() => {
-    let database              = 'crypto';
+    let database              = 'binance';
     let icoList               = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
     let crypto_platform       = 'bittrex';
     let crypto_platform_ohlcv = crypto_platform + '_ohlcv';
