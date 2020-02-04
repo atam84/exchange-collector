@@ -86,7 +86,7 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
             } catch(err) {
                 Log(options.failure + ' retry attempt: ' + repeater, options.logMessage);
                 if(options.logMessage) {
-                    console.log(' -- ' + err);
+                    console.log(' -- Error ' + err);
                 }
                 await time_t.__u_sleep(rateLimit * repeater);
                 //continue;
@@ -141,13 +141,16 @@ if(__argv.help) {
     let crypto_platform       = 'bittrex';
     let crypto_platform_ohlcv = crypto_platform + '_ohlcv';
     time_t                    = new time_tools();
+    time_t.start_timing();
     platform                  = new ccxt_quicker(crypto_platform);
     easy_db                   = new easy_mongo('mongodb://localhost:27017/', database, { verbose: false });
-    markets                   = await platform.loadMarkets();
     rateLimit                 = platform.getRateLimit();
+    markets                   = await platform.loadMarkets();
+    await time_t.__u_sleep(rateLimit);
+    markets_list              = Object.keys(markets);
     platform_periods          = platform.getPeriodsKeys();
     __period                  = selectSmallerPeriod(platform_periods);
-    time_t.start_timing();
+    await time_t.__u_sleep(rateLimit);
 
     if (platform.__isMarketsLoaded().markets_loaded === false) {
         console.log('[' + time_t.date_time_epoch_ms() + '] Fail to load markets.');
@@ -166,7 +169,7 @@ if(__argv.help) {
     
     console.log('[' + time_t.date_time_epoch_ms() + '] Selected platform     : ' + crypto_platform);
     console.log('[' + time_t.date_time_epoch_ms() + '] Using rate limit      : ' + rateLimit);
-    console.log('[' + time_t.date_time_epoch_ms() + '] Markets loaded        : ' + markets.length);
+    console.log('[' + time_t.date_time_epoch_ms() + '] Markets loaded        : ' + markets_list.length + ' markets');
     console.log('[' + time_t.date_time_epoch_ms() + '] Selected Markets      : ' + icoList.length);
     console.log('[' + time_t.date_time_epoch_ms() + '] Exchange periods      : ' + platform_periods);
     console.log('[' + time_t.date_time_epoch_ms() + '] Will use that period  : ' + __period);
@@ -274,7 +277,7 @@ if(__argv.help) {
                 Log('[' + time_t.date_time_epoch_ms() + ']  - ' + __counter + ' candles statistics data for  ' + __market + ' already collected from the previous execution.\n');
             }
             __usedTimeFrame = await getUsedTimeFrame(crypto_platform_ohlcv, __market + '_OHLCV');
-            if(__usedTimeFrame !== __period && __usedTimeFrame !== undefined) {
+            if(__usedTimeFrame !== __period && __usedTimeFrame !== undefined && __usedTimeFrame !== '' && __usedTimeFrame !== null) {
                 __period = __usedTimeFrame;
                 Log('[' + time_t.date_time_epoch_ms() + ']  - (SKEEP) Will use the previous period used for ' + __market + ' candles statistics data from ' + __last_time + '  with ' + __period + ' as timeframe\n');
                 __period = __usedTimeFrame;
@@ -290,10 +293,17 @@ if(__argv.help) {
                'last_time': __last_time,
                'period': __period
             }, 3, rateLimit);
+            // if we have data in database this mean the new collected candles will containe the last one collected, then we remove it
+            if(__counter > 0 && __counter !== undefined) {
+                candle.OHLCV.shift();
+            }
+            __newCandles = candle.OHLCV.length;
+            __totalStatistics = __counter + __newCandles;
+            Log('[' + time_t.date_time_epoch_ms() + ']  - ' + __newCandles + ' candles statistics data collected and will ne added to ' + __counter + ' already existing (' + __totalStatistics + ')\n');
 
-            __collected.OHLCV_period = __period;
-            candle.collect_time      = time_t.date_time_epoch_ms();
-            candle.period            = __period;
+            __collected.OHLCV_period    = __period;
+            candle.__OHLCV.collect_time = time_t.date_time_epoch_ms();
+            candle.__OHLCV.period       = __period;
             if(candle.OHLCV !== undefined) {
                 pulling_data.ico_ohlcv = true;
             }
@@ -350,7 +360,6 @@ if(__argv.help) {
     }
     
     easy_db.disconnect();
-    console.log(platform.__isMarketsLoaded());
 
     time_t.end_timing();
     time_t.timing_report();
