@@ -18,7 +18,7 @@ async function getUsedTimeFrame(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
             var _p = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, period: 1 } });
-            if (_p === null) {
+            if (_p.period === null || _p.period === '') {
                 resolve(undefined);
             } else {
                 resolve(_p.period);
@@ -33,7 +33,7 @@ async function getCounterOHLCV(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
             var _c = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, counter: 1 } });
-            if (_c === null) {
+            if (_c.counter === null || _c.counter === '' || _c.counter === undefined) {
                 resolve(0);
             } else {
                 if (_c.counter !== 0) {
@@ -48,12 +48,12 @@ async function getCounterOHLCV(__collection, __id) {
 async function getLastTimeOHLCV(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
-            var last_time = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
-            if (last_time === null) {
+            var _l = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
+            if (_l.last_time === null || _l.last_time === '') {
                 resolve(undefined);
             } else { 
-                if (last_time.last_time !== undefined) {
-                    resolve(last_time.last_time);
+                if (_l.last_time !== undefined) {
+                    resolve(_l.last_time);
                 }
             }
             resolve(undefined);
@@ -101,13 +101,7 @@ function marketInfo(__action, __market, options = { 'logMessage': true, 'mainMes
 }
 
 function selectSmallerPeriod(__periodKeys, __prefered = '5m') {
-    /*
-    { '1m': 'oneMin',
-  '5m': 'fiveMin',
-  '30m': 'thirtyMin',
-  '1h': 'hour',
-  '1d': 'day' }
-    */
+    /* { '1m': 'oneMin','5m': 'fiveMin','30m': 'thirtyMin','1h': 'hour','1d': 'day' } */
     var periods = [ '1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d' ];
     if (__periodKeys.indexOf(__prefered) > -1) {
         return __prefered;
@@ -136,9 +130,9 @@ if(__argv.help) {
 
 
 (async() => {
-    let database              = 'binance';
+    let database              = 'crypto';
     let icoList               = [ 'EOS/USDT', 'EOS/BTC', 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
-    let crypto_platform       = 'bittrex';
+    let crypto_platform       = 'binance';
     let crypto_platform_ohlcv = crypto_platform + '_ohlcv';
     time_t                    = new time_tools();
     time_t.start_timing();
@@ -283,7 +277,7 @@ if(__argv.help) {
                 __period = __usedTimeFrame;
             }
             
-            Log('[' + time_t.date_time_epoch_ms() + ']  > Get ' + __market + ' candles statistics data from ' + __last_time + '  with ' + __period + ' as timeframe\n');
+            Log('[' + time_t.date_time_epoch_ms() + ']  - Get ' + __market + ' candles statistics data from ' + __last_time + '  with ' + __period + ' as timeframe\n');
             // get OHLCV statistics
             candle.OHLCV = await marketInfo('icoOHLCV', __market, {
                'logMessage': true,
