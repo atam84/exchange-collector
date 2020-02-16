@@ -17,13 +17,17 @@ function Log(Message, printLog = true) {
 async function getUsedTimeFrame(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
-            var _p = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, period: 1 } });
-            if (_p.period === null || _p.period === '') {
+            try {
+                var _p = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, period: 1 } });
+                if (_p.period === null || _p.period === '') {
+                    resolve(undefined);
+                } else {
+                    resolve(_p.period);
+                }
                 resolve(undefined);
-            } else {
-                resolve(_p.period);
+            } catch(err) {
+                resolve(undefined);
             }
-            resolve(undefined);
         })();
     });
 }
@@ -32,15 +36,19 @@ async function getUsedTimeFrame(__collection, __id) {
 async function getCounterOHLCV(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
-            var _c = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, counter: 1 } });
-            if (_c.counter === null || _c.counter === '' || _c.counter === undefined) {
-                resolve(0);
-            } else {
-                if (_c.counter !== 0) {
-                    resolve(_c.counter);
+            try {
+                var _c = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, counter: 1 } });
+                if (_c.counter === null || _c.counter === '' || _c.counter === undefined) {
+                    resolve(0);
+                } else {
+                    if (_c.counter !== 0) {
+                        resolve(_c.counter);
+                    }
                 }
+                resolve(0);
+            } catch(err) {
+                resolve(0);
             }
-            resolve(0);
         })();
     });
 }
@@ -48,15 +56,19 @@ async function getCounterOHLCV(__collection, __id) {
 async function getLastTimeOHLCV(__collection, __id) {
     return new Promise((resolve, reject) => {
         (async() => {
-            var _l = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
-            if (_l.last_time === null || _l.last_time === '') {
-                resolve(undefined);
-            } else { 
-                if (_l.last_time !== undefined) {
-                    resolve(_l.last_time);
+            try {
+                var _l = await easy_db.findOne(__collection, {_id: __id}, { projection: { _id: 0, last_time: 1 } });
+                if (_l.last_time === null || _l.last_time === '') {
+                    resolve(undefined);
+                } else { 
+                    if (_l.last_time !== undefined) {
+                        resolve(_l.last_time);
+                    }
                 }
+                resolve(undefined);
+            } catch(err) {
+                resolve(undefined);
             }
-            resolve(undefined);
         })();
     });
 }
